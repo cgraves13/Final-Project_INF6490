@@ -1,0 +1,1 @@
+There is some code in the rmd file that I attempted but either couldn't complete or wasn't satisfied with the results. I left that code in the rmd file so that you could see my work process, however I did not include those results in my final project write-up.
