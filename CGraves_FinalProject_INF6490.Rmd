@@ -1,0 +1,266 @@
+---
+title: "CGraves_FinalProject_INF6490_Student ChatGPT Analysis"
+output: html_document
+date: "2025-11-30"
+name: Chantell Graves
+---
+#How frequently do students use ChatGPT, and how does usage frequency relate to their perceived usefuleness of the technology?
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(broom)
+library(ggplot2)
+library(dplyr)
+library(readr)
+library(janitor)
+library(ggthemes)
+
+```
+
+```{r}
+#Upload the data
+chatgpt_data <- read.csv("C:\\Users\\grave\\Downloads\\chatgptdataset.csv")
+
+#Explore the data structure
+head(chatgpt_data)
+summary(chatgpt_data)
+str(chatgpt_data)
+#Each column represents one of the questions from the survey which I have printed. My research questions are based on the correlation between Qs on the survey.
+
+#Remove missing values
+chatgpt_data <- na.omit(chatgpt_data)
+
+```
+
+#How frequently (Q15) do students use ChatGPT based on the country (Q4) they are studying in?
+
+```{r}
+#How frequently do students use ChatGPT based on the country they are studying in?
+
+#Convert 197 countries from Q4 to numeric
+chatgpt_country <- chatgpt_data %>%
+  mutate(Q4 = as.numeric(factor(Q4)))
+view(chatgpt_country)
+
+#See which country is assigned to which numerical value
+view(chatgpt_country)
+
+#Bar chart of reported ChatGPT usage frequency by country
+ggplot(data = chatgpt_data, aes(x = chatgpt_country$Q4, y = chatgpt_data$Q15))+
+  geom_bar(stat = "identity", position = "stack", fill = "blue")+
+  labs(title = "Student ChatGPT Usage Frequency by Country", x = "Country", y = "Frequency")+
+theme_minimal()
+
+
+```
+```{r}
+##Chi-square test is there an association between the frequency of ChatGPT use and the country a student studies in?
+
+#Create a contingency table for frequency and country
+country_freq <- table(chatgpt_country$Q4, chatgpt_data$Q15)
+
+#Perform the chi-square test
+chi_square_result <- chisq.test(country_freq)
+
+#Display the results
+chi_square_result
+
+```
+```{r}
+country_table_data <- table(chatgpt_country$Q4, chatgpt_data$Q15)
+country_table_data
+
+```
+
+```{r}
+country_heatmap <- as.data.frame(country_table_data)
+colnames(country_heatmap) <- c("Country","Frequency", "Count")
+country_heatmap <- country_heatmap %>%
+  mutate(prop = Count / sum(Count)) %>%
+  ungroup()
+ggplot(country_heatmap, aes(x = "Country", y = "Attendance", fill = prop)) +
+  geom_tile(color = "white") +                 # tile borders
+  scale_fill_gradient(low = "white", high = "steelblue") +
+  labs(title = "Heatmap of ChatGPT Use vs Country",
+       x = "Country",
+       y = "Frequency",
+       fill = "Proportion") +
+  theme_minimal()
+```
+
+
+```{r}
+#Simple linear regression
+ggplot(chatgpt_data, aes(x=chatgpt_country$Q4, y=chatgpt_data$Q15)) +
+  geom_point(alpha = 200) +
+  stat_smooth(method = "lm")+
+  labs(title = "ChatGPT Usage Frequency by Country", x = "Country", y = "Frequency")
+model <- lm(chatgpt_data$Q15 ~ chatgpt_country$Q4)
+summary(model)
+```
+
+
+#Do first-year students(Q9) use ChatGPT more frequently(Q15)?
+
+```{r}
+#Simple linear regression
+ggplot(chatgpt_data, aes(x=chatgpt_data$Q9, y=chatgpt_data$Q15)) +
+  geom_point(alpha = 0.8) +
+  stat_smooth(method = "lm")+
+  labs(title = "ChatGPT Usage Frequency of First-Year Students", x = "First Year Student Status", y = "Frequency")
+model <- lm(chatgpt_data$Q15 ~ chatgpt_data$Q9)
+summary(model)
+```
+
+#Do students who regularly attend classes use chatgpt less?
+
+
+```{r}
+table_data <- table(chatgpt_data$Q35b, chatgpt_data$Q15)
+table_data
+
+```
+
+```{r}
+df_heatmap <- as.data.frame(table_data)
+colnames(df_heatmap) <- c("Attendance","Frequency", "Count")
+df_heatmap <- df_heatmap %>%
+  mutate(prop = Count / sum(Count)) %>%
+  ungroup()
+ggplot(df_heatmap, aes(x = Frequency, y = Attendance, fill = prop)) +
+  geom_tile(color = "white") +                 # tile borders
+  scale_fill_gradient(low = "white", high = "steelblue") +
+  labs(title = "Heatmap of ChatGPT Use vs Class Attendance",
+       x = "Frequency of ChatGPT Use (1-5)",
+       y = "Class Attendance (1-5)",
+       fill = "Proportion") +
+  theme_minimal()
+```
+
+#Descriptive Statistics with Frequency (Q15) and Experience (Q16)
+```{r}
+#Exploratory data analysis
+#Measures of central tendency
+mean_extent <- mean(chatgpt_data$Q15)
+median_extent <- median(chatgpt_data$Q15)
+mode_extent <- mode(chatgpt_data$Q15)
+
+mean_experience <- mean(chatgpt_data$Q16)
+median_experience <- median(chatgpt_data$Q16)
+```
+
+```{r}
+mean_acawriting <- mean(chatgpt_data$Q18a)
+mean_creawriting <- mean(chatgpt_data$Q18c)
+mean_proofreading <- mean(chatgpt_data$Q18d)
+mean_brainstorming <- mean(chatgpt_data$Q18e)
+mean_summarizing <- mean(chatgpt_data$Q18g)
+mean_calculating <- mean(chatgpt_data$Q18h)
+mean_study <- mean(chatgpt_data$Q18i)
+mean_research <- mean (chatgpt_data$Q18k)
+mean_coding <- mean (chatgpt_data$Q18l)
+
+#show results
+mean_acawriting
+mean_creawriting
+mean_proofreading
+mean_brainstorming
+mean_summarizing
+mean_calculating
+mean_study
+mean_research
+mean_coding
+
+```
+```{r}
+t.test(chatgpt_data$Q15 ~ chatgpt_data$Q37, data = chatgpt_data)
+```
+```{r}
+#Build a regression model
+#Multiple linear regression satisfaction with quality of information and accuracy of information influence frequency
+model <- lm(chatgpt_data$Q15 ~ chatgpt_data$Q24f + chatgpt_data$Q24g, data = chatgpt_data)
+summary(model)
+```
+```{r}
+
+#Confidence interval for question 15 (usage frequency)
+t.test(chatgpt_data$Q15)$conf.int
+```
+
+
+```{r}
+ggplot(chatgpt_data, aes(x = chatgpt_data$Q39, y = chatgpt_data$Q15)) +
+  geom_jitter(alpha = 0.4) +
+  geom_smooth(method = "lm", color = "blue", se = TRUE) +
+  labs(
+    x = "Economic Status (Q39)",
+    y = "ChatGPT Usage Frequency (Q15)",
+    title = "Relationship Between Economic Status and ChatGPT Usage"
+  ) +
+  theme_minimal()
+```
+
+
+```{r}
+#Descriptive statistics
+mean_extent <- mean(chatgpt_data$Q15)
+mode_extent <- mode(chatgpt_data$Q15)
+median_extent <- median(chatgpt_data$Q15)
+mean_experience <- mean(chatgpt_data$Q16)
+mode_experience <- mode(chatgpt_data$Q16)
+median_experience <-median(chatgpt_data$Q16)
+
+#Measures of variability
+sd_extent <- sd(chatgpt_data$Q15)
+sd_experience <- sd(chatgpt_data$Q16)
+
+#View results
+mean_extent #2.483864 (occasionally to moderately)
+median_extent #2 (occasionally)
+mode_extent 
+mean_experience #3.803766 (neutral to good)
+median_experience #4 (good)
+mode_experience
+sd_extent #1.089275 moderate variability (students vary noticably in usage, with typical responses falling about one scale point away from the average)
+sd_experience #0.7532315 (less variability; fairly similar "good" experiences)
+
+```
+
+```{r}
+#t-test for ChatGPT use frequency (Q15) versus financial aid status (Q37)
+# Subset the data
+freqfin_ttest <- subset(chatgpt_data, chatgpt_data$Q15 %in% c("G", "K") & !is.na(chatgpt_data$Q37))
+
+# Perform a one-tailed t-test: H1 = General Mills has higher sugar than Kellogg's
+t_test_result <- t.test(chatgpt_data$Q15 ~ chatgpt_data$Q37, data = chatgpt_data)
+
+# View results
+t_test_result
+
+```
+
+```{r}
+#Visualize T-test
+#Parameters for the T test
+df <- 20 #degrees of freedom
+t_score <- 0.31147 #Example t-score above
+
+#Generate x values for the T-distribution
+x_t <- seq(-4, 4, length.out = 1000)
+y_t <- dt(x_t, df)
+
+#Create the plot
+ggplot(data.frame(x_t, y_t), aes(x_t, y_t)) +
+  geom_line(color = "purple") +
+  geom_area(data = subset(data.frame(x_t, y_t), x_t < qt(alpha, df)), aes(x_t, y_t), fill = "red", alpha = 0.5) + # Rejection region
+  geom_vline(xintercept = t_score, color = "orange", linetype = "dashed") + # T-score line
+  labs(title = "T-Test Visualization",
+       x = "T-values",
+       y = "Density") +
+  geom_text(aes(x = t_score, y = 0.1, label = paste("T =", round(t_score, 2))), vjust = -1, color = "black") +
+  theme_minimal()
+
+```
+```
+
